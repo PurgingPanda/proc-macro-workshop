@@ -92,23 +92,26 @@ pub fn derive(input: TokenStream) -> TokenStream {
             }
         }
 
+        use std::error;
+        // use syn::token::Box;
+        use std::boxed::Box;
+
         impl #bident {
             #(#methods)*
-            // pub fn executable(self: &mut #bident, value: String) -> &mut #bident{
-            //     self
-            // }
 
-            // pub fn args(self: &mut #bident, value: Vec<String>) -> &mut #bident{
-            //     self
-            // }
+            pub fn build(&mut self) -> Result<#ident, Box<dyn std::error::Error>> {
+                // CHeck if all fields are set
+                // If so return Command
+                let executable_value : String = self.executable.clone().ok_or_else(|| Box::<dyn std::error::Error>::from("Executable not set"))?;
+                self.executable = None;
 
-            // pub fn env(self: &mut #bident, value: Vec<String>) -> &mut #bident{
-            //     self
-            // }
-
-            // pub fn current_dir(self: &mut #bident, value: String) -> &mut #bident{
-            //     self
-            // }
+                Ok(#ident {
+                    executable: executable_value,
+                    args: vec![],
+                    env: vec![],
+                    current_dir: "".into()
+                })
+            }
         }
     };
 
