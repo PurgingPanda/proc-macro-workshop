@@ -12,10 +12,14 @@ proc-macro = true
 name = "tests"
 path = "tests/progress.rs"
 
+[[test]]
+name = "test_target"
+path = "tests/03-call-setters.rs"
+
 [dev-dependencies]
 trybuild = { version = "1.0.49", features = ["diff"] }
 
 [dependencies]
 quote = "1.0.33"
-syn = {version="2.0.29", features=["extra-traits"]}
+syn = {version="2.0.29", features=["derive", "extra-traits", "full"]}
 # TODO
