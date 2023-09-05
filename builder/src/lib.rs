@@ -25,10 +25,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
 
     println!("{:#?}", fields);
 
-    let attributes = fields.iter().map(|x| {
-        eprintln!("KAAS");
-        eprintln!("{:#?}", x);
-
+    let attributes_for_builder = fields.iter().map(|x| {
         let field_ident = &x.ident;
         let field_ty: &syn::Type = &x.ty;
 
@@ -45,47 +42,73 @@ pub fn derive(input: TokenStream) -> TokenStream {
         t
     });
 
+    let values_for_builder  = fields.iter().map(|x| {
+        let field_ident = &x.ident;
+        let field_ty: &syn::Type = &x.ty;
+
+        let path_type = if let syn::Type::Path(ref type_path)  = field_ty{
+            type_path.path.clone()
+        } else {
+            unimplemented!()
+        };
+
+        let t = quote!{
+            #field_ident: None 
+        };
+
+        t
+    });
+
+    let methods  = fields.iter().map(|x| {
+        let field_ident = &x.ident;
+        let field_ty: &syn::Type = &x.ty;
+
+        let path_type = if let syn::Type::Path(ref type_path)  = field_ty{
+            type_path.path.clone()
+        } else {
+            unimplemented!()
+        };
+
+        let t = quote!{
+            pub fn #field_ident(self: &mut #bident, value: #path_type) -> &mut #bident {
+                self.#field_ident = Some(value);
+                self
+            }
+        };
+
+        t
+    });
+
     let expanded = quote!{
         pub struct #bident {
-            #(#attributes),*
-            // executable: Option<String>,
-            // args: Option<Vec<String>>,
-            // env: Option<Vec<String>>,
-            // current_dir: Option<String>,
+            #(#attributes_for_builder),*
         }
 
         impl #ident {
             pub fn builder() -> #bident{
                 #bident {
-                    executable: None,
-                    args: None,
-                    env: None,
-                    current_dir: None,
+                    #(#values_for_builder),*
                 }
             }
         }
 
         impl #bident {
-            // #(
-            //     #(fields.)
+            #(#methods)*
+            // pub fn executable(self: &mut #bident, value: String) -> &mut #bident{
+            //     self
+            // }
 
-            // )*
+            // pub fn args(self: &mut #bident, value: Vec<String>) -> &mut #bident{
+            //     self
+            // }
 
-            pub fn executable(self: &mut #bident, value: String) -> &mut #bident{
-                self
-            }
+            // pub fn env(self: &mut #bident, value: Vec<String>) -> &mut #bident{
+            //     self
+            // }
 
-            pub fn args(self: &mut #bident, value: Vec<String>) -> &mut #bident{
-                self
-            }
-
-            pub fn env(self: &mut #bident, value: Vec<String>) -> &mut #bident{
-                self
-            }
-
-            pub fn current_dir(self: &mut #bident, value: String) -> &mut #bident{
-                self
-            }
+            // pub fn current_dir(self: &mut #bident, value: String) -> &mut #bident{
+            //     self
+            // }
         }
     };
 
